@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
 
 interface ResumeUploaderProps {
   onFileSelect: (file: File | null) => void;
@@ -26,6 +27,16 @@ const ResumeUploader = ({ onFileSelect }: ResumeUploaderProps) => {
     }
   };
 
+  const handleClearFile = () => {
+    setFileName("");
+    onFileSelect(null);
+    // Clear the input value
+    const fileInput = document.getElementById("resume-upload") as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Label htmlFor="resume-upload" className="text-base font-medium text-gray-700">
@@ -41,7 +52,16 @@ const ResumeUploader = ({ onFileSelect }: ResumeUploaderProps) => {
         />
       </div>
       {fileName && (
-        <p className="text-sm text-gray-600 mt-1">Selected: {fileName}</p>
+        <div className="flex items-center justify-between bg-gray-50 p-2 rounded border">
+          <p className="text-sm text-gray-600">Selected: {fileName}</p>
+          <button
+            onClick={handleClearFile}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            type="button"
+          >
+            <X size={16} />
+          </button>
+        </div>
       )}
     </div>
   );
