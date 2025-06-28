@@ -21,6 +21,15 @@ const Index = () => {
       return;
     }
 
+    if (!jobDescription.trim()) {
+      toast({
+        title: "Job description required",
+        description: "Please enter a job description to analyze against",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     
     // Simulate analysis process
@@ -50,7 +59,7 @@ const Index = () => {
               
               <AnalyzeButton
                 onClick={handleAnalyze}
-                isDisabled={!selectedFile}
+                isDisabled={!selectedFile || !jobDescription.trim()}
                 isLoading={isAnalyzing}
               />
             </div>
