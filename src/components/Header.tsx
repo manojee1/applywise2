@@ -6,10 +6,10 @@ const Header = () => {
     <div className="text-center mb-8">
       <div className="flex items-center justify-center gap-3 mb-4">
         <FileText className="w-8 h-8 text-gray-700" />
-        <h1 className="text-4xl font-bold text-gray-800">Jobber</h1>
+        <h1 className="text-4xl font-bold text-gray-800">ApplyWise</h1>
       </div>
       <p className="text-gray-600 text-lg">
-        I'll provide a detailed review of your Product Manager resume
+        Smart, actionable guidance for job applications
       </p>
     </div>
   );
