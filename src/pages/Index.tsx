@@ -1,15 +1,38 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
 import ResumeUploader from "@/components/ResumeUploader";
 import AnalyzeButton from "@/components/AnalyzeButton";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const navigate = useNavigate();
+
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          // For now, we'll ask the user to copy/paste the text content
+          // In a production app, you'd use a PDF parsing library
+          const text = `[PDF Content - Please copy and paste your resume text here as PDF parsing is not implemented in this demo]
+          
+For this demo, please copy the text content of your resume and we'll use that for analysis.`;
+          resolve(text);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  };
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -32,14 +55,47 @@ const Index = () => {
 
     setIsAnalyzing(true);
     
-    // Simulate analysis process
-    setTimeout(() => {
-      setIsAnalyzing(false);
+    try {
+      // Extract text from PDF
+      const resumeText = await extractTextFromPDF(selectedFile);
+      
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: {
+          jobDescription: jobDescription.trim(),
+          resumeText: resumeText
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Navigate to results page with the analysis data
+      navigate('/results', { 
+        state: { 
+          analysis: data.analysis 
+        } 
+      });
+
       toast({
         title: "Analysis Complete!",
-        description: "Your resume has been analyzed. Check your email for detailed feedback.",
+        description: "Your resume has been analyzed successfully.",
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "An error occurred while analyzing your resume",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
