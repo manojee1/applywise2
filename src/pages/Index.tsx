@@ -7,32 +7,15 @@ import ResumeUploader from "@/components/ResumeUploader";
 import AnalyzeButton from "@/components/AnalyzeButton";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [resumeText, setResumeText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
-
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          // For now, we'll ask the user to copy/paste the text content
-          // In a production app, you'd use a PDF parsing library
-          const text = `[PDF Content - Please copy and paste your resume text here as PDF parsing is not implemented in this demo]
-          
-For this demo, please copy the text content of your resume and we'll use that for analysis.`;
-          resolve(text);
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
-  };
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -53,17 +36,23 @@ For this demo, please copy the text content of your resume and we'll use that fo
       return;
     }
 
+    if (!resumeText.trim()) {
+      toast({
+        title: "Resume text required",
+        description: "Please paste your resume text in the text area below",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     
     try {
-      // Extract text from PDF
-      const resumeText = await extractTextFromPDF(selectedFile);
-      
       // Call the edge function
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: {
           jobDescription: jobDescription.trim(),
-          resumeText: resumeText
+          resumeText: resumeText.trim()
         }
       });
 
@@ -113,9 +102,27 @@ For this demo, please copy the text content of your resume and we'll use that fo
               
               <ResumeUploader onFileSelect={setSelectedFile} />
               
+              {selectedFile && (
+                <div className="space-y-2">
+                  <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
+                    Resume Text
+                  </Label>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Please copy and paste the text content of your resume below (PDF text extraction will be added in a future update):
+                  </p>
+                  <Textarea
+                    id="resume-text"
+                    placeholder="Paste your resume text here..."
+                    value={resumeText}
+                    onChange={(e) => setResumeText(e.target.value)}
+                    className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+              
               <AnalyzeButton
                 onClick={handleAnalyze}
-                isDisabled={!selectedFile || !jobDescription.trim()}
+                isDisabled={!selectedFile || !jobDescription.trim() || !resumeText.trim()}
                 isLoading={isAnalyzing}
               />
             </div>
