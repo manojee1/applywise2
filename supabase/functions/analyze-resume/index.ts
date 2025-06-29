@@ -63,7 +63,7 @@ serve(async (req) => {
       throw new Error('Job description and resume text are required');
     }
 
-    console.log('Analyzing resume with OpenAI...');
+    console.log('Analyzing resume with OpenAI GPT-4.1...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,7 +72,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
