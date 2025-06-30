@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -51,99 +52,135 @@ serve(async (req) => {
 
 async function extractTextFromPDF(pdfBytes: Uint8Array): Promise<string> {
   try {
-    // Convert bytes to string for text extraction - using UTF-8 decoder
-    const pdfString = new TextDecoder('utf-8', { fatal: false }).decode(pdfBytes);
-    console.log('PDF string length:', pdfString.length);
+    // Convert bytes to binary string for parsing
+    let binaryString = '';
+    for (let i = 0; i < pdfBytes.length; i++) {
+      binaryString += String.fromCharCode(pdfBytes[i]);
+    }
+    
+    console.log('PDF binary string length:', binaryString.length);
     
     const textBlocks: string[] = [];
     
-    // Method 1: Look for text between parentheses in PDF streams
-    // This is the most common way text is stored in PDFs
-    const textInParentheses = /\(([^)]+)\)/g;
-    let match;
+    // Method 1: Extract text from stream objects
+    // Look for stream objects that contain text
+    const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
+    let streamMatch;
     
-    while ((match = textInParentheses.exec(pdfString)) !== null) {
-      const text = match[1];
-      // Filter out control characters and keep only printable text
-      const cleanText = text
-        .replace(/\\n/g, ' ')
-        .replace(/\\r/g, ' ')
-        .replace(/\\t/g, ' ')
-        .replace(/\\\\/g, '\\')
-        .replace(/\\'/g, "'")
-        .replace(/\\"/g, '"')
-        .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
-        .trim();
+    while ((streamMatch = streamRegex.exec(binaryString)) !== null) {
+      const streamContent = streamMatch[1];
       
-      // Only include text that has actual letters and is reasonably long
-      if (cleanText.length > 2 && /[a-zA-Z]/.test(cleanText)) {
-        textBlocks.push(cleanText);
-      }
-    }
-    
-    console.log(`Found ${textBlocks.length} text segments from parentheses method`);
-    
-    // Method 2: Look for text in array format [(text)] TJ
-    const arrayTextRegex = /\[([^\]]*)\]\s*TJ/g;
-    while ((match = arrayTextRegex.exec(pdfString)) !== null) {
-      const arrayContent = match[1];
-      const textMatches = arrayContent.match(/\(([^)]*)\)/g);
-      if (textMatches) {
-        textMatches.forEach(text => {
-          const cleanText = text.slice(1, -1) // Remove parentheses
+      // Look for text operators in the stream
+      // BT = Begin Text, ET = End Text, Tj = Show text string, TJ = Show text string with individual glyph positioning
+      const textOperatorRegex = /BT\s*([\s\S]*?)\s*ET/g;
+      let textMatch;
+      
+      while ((textMatch = textOperatorRegex.exec(streamContent)) !== null) {
+        const textSection = textMatch[1];
+        
+        // Extract strings within parentheses
+        const stringRegex = /\(([^)]*)\)\s*(?:Tj|TJ)/g;
+        let stringMatch;
+        
+        while ((stringMatch = stringRegex.exec(textSection)) !== null) {
+          let text = stringMatch[1];
+          
+          // Clean up the text
+          text = text
             .replace(/\\n/g, ' ')
             .replace(/\\r/g, ' ')
             .replace(/\\t/g, ' ')
-            .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+            .replace(/\\\\/g, '\\')
+            .replace(/\\'/g, "'")
+            .replace(/\\"/g, '"')
+            .replace(/\\([0-7]{3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '') // Remove control characters
             .trim();
           
-          if (cleanText.length > 2 && /[a-zA-Z]/.test(cleanText)) {
-            textBlocks.push(cleanText);
+          if (text.length > 1 && /[a-zA-Z0-9]/.test(text)) {
+            textBlocks.push(text);
           }
-        });
+        }
+        
+        // Also look for array format text
+        const arrayRegex = /\[([^\]]*)\]\s*TJ/g;
+        let arrayMatch;
+        
+        while ((arrayMatch = arrayRegex.exec(textSection)) !== null) {
+          const arrayContent = arrayMatch[1];
+          const arrayStrings = arrayContent.match(/\(([^)]*)\)/g);
+          
+          if (arrayStrings) {
+            arrayStrings.forEach(str => {
+              let text = str.slice(1, -1); // Remove parentheses
+              text = text
+                .replace(/\\n/g, ' ')
+                .replace(/\\r/g, ' ')
+                .replace(/\\t/g, ' ')
+                .replace(/\\\\/g, '\\')
+                .replace(/\\'/g, "'")
+                .replace(/\\"/g, '"')
+                .replace(/\\([0-7]{3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+                .trim();
+              
+              if (text.length > 1 && /[a-zA-Z0-9]/.test(text)) {
+                textBlocks.push(text);
+              }
+            });
+          }
+        }
+      }
+    }
+    
+    console.log(`Found ${textBlocks.length} text segments from stream parsing`);
+    
+    // Method 2: Fallback - look for text outside streams
+    if (textBlocks.length === 0) {
+      console.log('No text found in streams, trying fallback extraction...');
+      
+      // Look for standalone text operations
+      const standaloneTextRegex = /\(([^)]+)\)\s*(?:Tj|TJ)/g;
+      let match;
+      
+      while ((match = standaloneTextRegex.exec(binaryString)) !== null) {
+        let text = match[1];
+        text = text
+          .replace(/\\n/g, ' ')
+          .replace(/\\r/g, ' ')
+          .replace(/\\t/g, ' ')
+          .replace(/\\\\/g, '\\')
+          .replace(/\\'/g, "'")
+          .replace(/\\"/g, '"')
+          .replace(/\\([0-7]{3})/g, (match, octal) => String.fromCharCode(parseInt(octal, 8)))
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+          .trim();
+        
+        if (text.length > 1 && /[a-zA-Z0-9]/.test(text)) {
+          textBlocks.push(text);
+        }
       }
     }
     
     console.log(`Total text segments found: ${textBlocks.length}`);
     
-    // Method 3: Fallback - look for readable text patterns
-    if (textBlocks.length === 0) {
-      console.log('No text found with standard methods, trying fallback...');
-      
-      // Look for sequences of readable characters
-      const readableTextRegex = /[A-Za-z][A-Za-z\s.,!?;:'"()-]{10,}/g;
-      const readableMatches = pdfString.match(readableTextRegex);
-      
-      if (readableMatches) {
-        readableMatches.forEach(text => {
-          const cleanText = text.replace(/\s+/g, ' ').trim();
-          if (cleanText.length > 10) {
-            textBlocks.push(cleanText);
-          }
-        });
-      }
-    }
-    
     // Join all text blocks and clean up
-    let extractedText = textBlocks
-      .join(' ')
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
+    let extractedText = textBlocks.join(' ').replace(/\s+/g, ' ').trim();
     
     console.log(`Final extracted text length: ${extractedText.length}`);
     
-    // If we still don't have meaningful text, throw an error
-    if (!extractedText || extractedText.length < 50) {
-      throw new Error('Unable to extract readable text from PDF. This PDF may be image-based, password-protected, or have an unsupported format. Please try converting it to a text-based PDF or use OCR to extract the text first.');
+    // If we still don't have meaningful text, provide a helpful error
+    if (!extractedText || extractedText.length < 20) {
+      throw new Error('Unable to extract readable text from PDF. This PDF may be image-based (scanned document), password-protected, or use an unsupported encoding. Please try: 1) Converting to a text-based PDF, 2) Using OCR software first, or 3) Copy-pasting the text manually.');
     }
     
-    // Limit the text length to prevent token issues (max ~15,000 characters)
-    if (extractedText.length > 15000) {
-      extractedText = extractedText.substring(0, 15000) + '... [text truncated due to length]';
+    // Limit the text length to prevent token issues (max ~12,000 characters)
+    if (extractedText.length > 12000) {
+      extractedText = extractedText.substring(0, 12000) + '... [text truncated to prevent API limits]';
       console.log('Text truncated to prevent token limit issues');
     }
     
-    console.log('Successfully extracted text:', extractedText.substring(0, 100) + '...');
+    console.log('Successfully extracted readable text. Sample:', extractedText.substring(0, 200) + '...');
     return extractedText;
   } catch (error) {
     console.error('PDF text extraction error:', error);
