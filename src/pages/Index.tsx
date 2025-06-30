@@ -7,43 +7,15 @@ import ResumeUploader from "@/components/ResumeUploader";
 import AnalyzeButton from "@/components/AnalyzeButton";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [resumeText, setResumeText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isExtractingText, setIsExtractingText] = useState(false);
   const navigate = useNavigate();
-
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    console.log('Starting PDF text extraction...');
-    setIsExtractingText(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('pdf', file);
-
-      const { data, error } = await supabase.functions.invoke('extract-pdf-text', {
-        body: formData,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      console.log('PDF text extraction completed');
-      return data.text;
-    } catch (error) {
-      console.error('PDF extraction error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Failed to extract text from PDF');
-    } finally {
-      setIsExtractingText(false);
-    }
-  };
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -64,26 +36,18 @@ const Index = () => {
       return;
     }
 
+    if (!resumeText.trim()) {
+      toast({
+        title: "Resume text required",
+        description: "Please paste your resume text in the text area below",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     
     try {
-      // Extract text from PDF
-      toast({
-        title: "Processing PDF",
-        description: "Extracting text from your resume...",
-      });
-      
-      const resumeText = await extractTextFromPDF(selectedFile);
-      
-      if (!resumeText || resumeText.trim().length < 20) {
-        throw new Error('Unable to extract sufficient text from PDF. Please ensure your PDF contains selectable text.');
-      }
-
-      toast({
-        title: "PDF Processed",
-        description: "Now analyzing resume against job description...",
-      });
-      
       // Call the edge function
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: {
@@ -138,18 +102,28 @@ const Index = () => {
               
               <ResumeUploader onFileSelect={setSelectedFile} />
               
-              {isExtractingText && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-blue-800 text-sm">
-                    Extracting text from your PDF resume...
+              {selectedFile && (
+                <div className="space-y-2">
+                  <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
+                    Resume Text
+                  </Label>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Please copy and paste the text content of your resume below (PDF text extraction will be added in a future update):
                   </p>
+                  <Textarea
+                    id="resume-text"
+                    placeholder="Paste your resume text here..."
+                    value={resumeText}
+                    onChange={(e) => setResumeText(e.target.value)}
+                    className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
                 </div>
               )}
               
               <AnalyzeButton
                 onClick={handleAnalyze}
-                isDisabled={!selectedFile || !jobDescription.trim()}
-                isLoading={isAnalyzing || isExtractingText}
+                isDisabled={!selectedFile || !jobDescription.trim() || !resumeText.trim()}
+                isLoading={isAnalyzing}
               />
             </div>
           </div>
