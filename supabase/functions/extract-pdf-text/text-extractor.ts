@@ -40,14 +40,14 @@ export function extractTextInBrackets(pdfString: string): string[] {
 export function extractTextFromBlock(block: string): string[] {
   const texts: string[] = [];
   
-  // Look for Tj and TJ operators
+  // Look for Tj and TJ operators with better regex
   const tjMatches = block.match(/\(([^)]*)\)\s*Tj/g);
   if (tjMatches) {
     for (const match of tjMatches) {
       const text = match.match(/\(([^)]*)\)/);
       if (text) {
         const cleanText = cleanExtractedText(text[1]);
-        if (cleanText.length > 1 && isReadableText(cleanText)) {
+        if (cleanText.length > 0 && isReadableText(cleanText)) {
           texts.push(cleanText);
         }
       }
@@ -65,11 +65,23 @@ export function extractTextFromBlock(block: string): string[] {
           for (const stringMatch of stringMatches) {
             const text = stringMatch.slice(1, -1);
             const cleanText = cleanExtractedText(text);
-            if (cleanText.length > 1 && isReadableText(cleanText)) {
+            if (cleanText.length > 0 && isReadableText(cleanText)) {
               texts.push(cleanText);
             }
           }
         }
+      }
+    }
+  }
+  
+  // Also extract simple text strings not in operators
+  const simpleTextMatches = block.match(/\(([^)]+)\)/g);
+  if (simpleTextMatches) {
+    for (const match of simpleTextMatches) {
+      const text = match.slice(1, -1);
+      const cleanText = cleanExtractedText(text);
+      if (cleanText.length > 0 && isReadableText(cleanText) && !texts.includes(cleanText)) {
+        texts.push(cleanText);
       }
     }
   }
