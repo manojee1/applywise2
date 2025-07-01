@@ -17,10 +17,6 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
 
-  const handleTextExtracted = (text: string) => {
-    setResumeText(text);
-  };
-
   const handleAnalyze = async () => {
     if (!selectedFile) {
       toast({
@@ -43,7 +39,7 @@ const Index = () => {
     if (!resumeText.trim()) {
       toast({
         title: "Resume text required",
-        description: "Please ensure your PDF was processed or paste your resume text manually",
+        description: "Please paste your resume text in the text area below",
         variant: "destructive",
       });
       return;
@@ -104,27 +100,19 @@ const Index = () => {
                 onChange={setJobDescription}
               />
               
-              <ResumeUploader 
-                onFileSelect={setSelectedFile}
-                onTextExtracted={handleTextExtracted}
-              />
+              <ResumeUploader onFileSelect={setSelectedFile} />
               
               {selectedFile && (
                 <div className="space-y-2">
                   <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
                     Resume Text
-                    {resumeText.trim() && (
-                      <span className="ml-2 text-sm text-green-600">✓ Extracted automatically</span>
-                    )}
                   </Label>
-                  {!resumeText.trim() && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      If PDF processing failed, please copy and paste your resume text here:
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-600 mb-2">
+                    Please copy and paste the text content of your resume below (PDF text extraction will be added in a future update):
+                  </p>
                   <Textarea
                     id="resume-text"
-                    placeholder={resumeText.trim() ? "Text extracted from your PDF..." : "Paste your resume text here if PDF processing failed..."}
+                    placeholder="Paste your resume text here..."
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
                     className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"

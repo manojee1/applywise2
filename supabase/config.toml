@@ -3,6 +3,3 @@ project_id = "byctxbgkyctcjryxlkvg"
 
 [functions.analyze-resume]
 verify_jwt = false
-
-[functions.extract-pdf-text]
-verify_jwt = false
