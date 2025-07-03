@@ -1,6 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
 import ResumeUploader from "@/components/ResumeUploader";
@@ -9,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
@@ -16,6 +18,25 @@ const Index = () => {
   const [resumeText, setResumeText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
+  const { user, session, loading, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -48,11 +69,14 @@ const Index = () => {
     setIsAnalyzing(true);
     
     try {
-      // Call the edge function
+      // Call the edge function with authentication
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: {
           jobDescription: jobDescription.trim(),
           resumeText: resumeText.trim()
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token || ''}`
         }
       });
 
