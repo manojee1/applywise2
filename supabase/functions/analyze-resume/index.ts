@@ -203,8 +203,18 @@ serve(async (req) => {
     // Try to parse as JSON, fallback to plain text if parsing fails
     let analysis;
     try {
-      analysis = JSON.parse(analysisContent);
-    } catch {
+      // Remove markdown code blocks if present
+      let cleanContent = analysisContent.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      analysis = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.log('JSON parsing failed:', parseError);
+      console.log('Raw content:', analysisContent);
       analysis = { rawAnalysis: analysisContent };
     }
 
