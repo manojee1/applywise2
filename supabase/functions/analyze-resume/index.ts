@@ -145,36 +145,6 @@ serve(async (req) => {
   }
 
   try {
-    // Get the authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Authorization header required' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Verify the JWT token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Check rate limiting
-    const rateLimitResult = await checkRateLimit(user.id);
-    if (!rateLimitResult.allowed) {
-      return new Response(JSON.stringify({ error: rateLimitResult.error }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const { jobDescription, resumeText } = await req.json();
 
     // Validate inputs
@@ -198,7 +168,7 @@ serve(async (req) => {
     const sanitizedJobDescription = sanitizeText(jobDescription);
     const sanitizedResumeText = sanitizeText(resumeText);
 
-    console.log(`Analyzing resume for user ${user.id} with OpenAI GPT-4o-mini...`);
+    console.log('Analyzing resume with OpenAI GPT-4o-mini...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
