@@ -100,7 +100,10 @@ const Index = () => {
                 onChange={setJobDescription}
               />
               
-              <ResumeUploader onFileSelect={setSelectedFile} />
+              <ResumeUploader 
+                onFileSelect={setSelectedFile} 
+                onTextExtracted={setResumeText}
+              />
               
               {selectedFile && (
                 <div className="space-y-2">
@@ -108,7 +111,7 @@ const Index = () => {
                     Resume Text
                   </Label>
                   <p className="text-sm text-gray-600 mb-2">
-                    Please copy and paste the text content of your resume below (PDF text extraction will be added in a future update):
+                    Text extracted from your PDF (you can edit if needed):
                   </p>
                   <Textarea
                     id="resume-text"
