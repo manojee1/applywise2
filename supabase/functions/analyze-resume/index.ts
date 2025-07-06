@@ -1,101 +1,13 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Input validation functions
-function sanitizeText(text: string): string {
-  return text.trim().replace(/[<>]/g, '');
-}
-
-function validateJobDescription(jobDescription: string): { valid: boolean; error?: string } {
-  if (!jobDescription || typeof jobDescription !== 'string') {
-    return { valid: false, error: 'Job description is required' };
-  }
-  
-  const sanitized = sanitizeText(jobDescription);
-  if (sanitized.length < 10) {
-    return { valid: false, error: 'Job description must be at least 10 characters long' };
-  }
-  
-  if (sanitized.length > 5000) {
-    return { valid: false, error: 'Job description must be less than 5000 characters' };
-  }
-  
-  return { valid: true };
-}
-
-function validateResumeText(resumeText: string): { valid: boolean; error?: string } {
-  if (!resumeText || typeof resumeText !== 'string') {
-    return { valid: false, error: 'Resume text is required' };
-  }
-  
-  const sanitized = sanitizeText(resumeText);
-  if (sanitized.length < 50) {
-    return { valid: false, error: 'Resume text must be at least 50 characters long' };
-  }
-  
-  if (sanitized.length > 10000) {
-    return { valid: false, error: 'Resume text must be less than 10000 characters' };
-  }
-  
-  return { valid: true };
-}
-
-// Rate limiting function
-async function checkRateLimit(userId: string): Promise<{ allowed: boolean; error?: string }> {
-  const now = new Date();
-  const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
-  
-  try {
-    // Check recent requests
-    const { data: recentRequests, error } = await supabase
-      .from('user_usage')
-      .select('request_count')
-      .eq('user_id', userId)
-      .eq('endpoint', 'analyze-resume')
-      .gte('last_request', oneMinuteAgo.toISOString());
-    
-    if (error) {
-      console.error('Rate limit check error:', error);
-      return { allowed: true }; // Allow on error to avoid blocking legitimate users
-    }
-    
-    const totalRequests = recentRequests?.reduce((sum, record) => sum + record.request_count, 0) || 0;
-    
-    if (totalRequests >= 5) {
-      return { allowed: false, error: 'Rate limit exceeded. Please wait before making another request.' };
-    }
-    
-    // Update usage tracking
-    await supabase
-      .from('user_usage')
-      .upsert({
-        user_id: userId,
-        endpoint: 'analyze-resume',
-        request_count: 1,
-        last_request: now.toISOString()
-      }, {
-        onConflict: 'user_id,endpoint'
-      });
-    
-    return { allowed: true };
-  } catch (error) {
-    console.error('Rate limiting error:', error);
-    return { allowed: true }; // Allow on error
-  }
-}
 
 const SYSTEM_PROMPT = `You are a professional and helpful career coach that is looking to help jobseekers find the best job that matches their background.
 
@@ -147,28 +59,11 @@ serve(async (req) => {
   try {
     const { jobDescription, resumeText } = await req.json();
 
-    // Validate inputs
-    const jobValidation = validateJobDescription(jobDescription);
-    if (!jobValidation.valid) {
-      return new Response(JSON.stringify({ error: jobValidation.error }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!jobDescription || !resumeText) {
+      throw new Error('Job description and resume text are required');
     }
 
-    const resumeValidation = validateResumeText(resumeText);
-    if (!resumeValidation.valid) {
-      return new Response(JSON.stringify({ error: resumeValidation.error }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Sanitize inputs
-    const sanitizedJobDescription = sanitizeText(jobDescription);
-    const sanitizedResumeText = sanitizeText(resumeText);
-
-    console.log('Analyzing resume with OpenAI GPT-4o-mini...');
+    console.log('Analyzing resume with OpenAI GPT-4.1...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -177,12 +72,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
             role: 'user', 
-            content: `Job Description:\n${sanitizedJobDescription}\n\nResume:\n${sanitizedResumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
+            content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
           }
         ],
         temperature: 0.7,
@@ -203,18 +98,8 @@ serve(async (req) => {
     // Try to parse as JSON, fallback to plain text if parsing fails
     let analysis;
     try {
-      // Remove markdown code blocks if present
-      let cleanContent = analysisContent.trim();
-      if (cleanContent.startsWith('```json')) {
-        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanContent.startsWith('```')) {
-        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-      
-      analysis = JSON.parse(cleanContent);
-    } catch (parseError) {
-      console.log('JSON parsing failed:', parseError);
-      console.log('Raw content:', analysisContent);
+      analysis = JSON.parse(analysisContent);
+    } catch {
       analysis = { rawAnalysis: analysisContent };
     }
 
