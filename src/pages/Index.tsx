@@ -1,32 +1,45 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
-import ResumeUploader from "@/components/ResumeUploader";
 import AnalyzeButton from "@/components/AnalyzeButton";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
+  const [persistResume, setPersistResume] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
 
-  const handleAnalyze = async () => {
-    if (!selectedFile) {
-      toast({
-        title: "No file selected",
-        description: "Please select a PDF resume to analyze",
-        variant: "destructive",
-      });
-      return;
+  // Load persisted resume text on component mount
+  useEffect(() => {
+    const savedResume = sessionStorage.getItem('persistedResumeText');
+    const shouldPersist = sessionStorage.getItem('persistResumeEnabled') === 'true';
+    
+    if (savedResume && shouldPersist) {
+      setResumeText(savedResume);
+      setPersistResume(true);
     }
+  }, []);
 
+  // Save resume text to session storage when persist is enabled
+  useEffect(() => {
+    if (persistResume && resumeText.trim()) {
+      sessionStorage.setItem('persistedResumeText', resumeText);
+      sessionStorage.setItem('persistResumeEnabled', 'true');
+    } else if (!persistResume) {
+      sessionStorage.removeItem('persistedResumeText');
+      sessionStorage.removeItem('persistResumeEnabled');
+    }
+  }, [resumeText, persistResume]);
+
+  const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
       toast({
         title: "Job description required",
@@ -100,29 +113,35 @@ const Index = () => {
                 onChange={setJobDescription}
               />
               
-              <ResumeUploader onFileSelect={setSelectedFile} />
-              
-              {selectedFile && (
-                <div className="space-y-2">
-                  <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
-                    Resume Text
-                  </Label>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Please copy and paste the text content of your resume below (PDF text extraction will be added in a future update):
-                  </p>
-                  <Textarea
-                    id="resume-text"
-                    placeholder="Paste your resume text here..."
-                    value={resumeText}
-                    onChange={(e) => setResumeText(e.target.value)}
-                    className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              <div className="space-y-2">
+                <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
+                  Resume Text <span className="text-red-500">*</span>
+                </Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Please copy and paste the text content of your resume below:
+                </p>
+                <Textarea
+                  id="resume-text"
+                  placeholder="Paste your resume text here..."
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+                <div className="flex items-center space-x-2 mt-2">
+                  <Checkbox
+                    id="persist-resume"
+                    checked={persistResume}
+                    onCheckedChange={(checked) => setPersistResume(checked as boolean)}
                   />
+                  <Label htmlFor="persist-resume" className="text-sm text-gray-600 cursor-pointer">
+                    Remember my resume text for this session
+                  </Label>
                 </div>
-              )}
+              </div>
               
               <AnalyzeButton
                 onClick={handleAnalyze}
-                isDisabled={!selectedFile || !jobDescription.trim() || !resumeText.trim()}
+                isDisabled={!jobDescription.trim() || !resumeText.trim()}
                 isLoading={isAnalyzing}
               />
             </div>
