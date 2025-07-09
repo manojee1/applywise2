@@ -22,6 +22,8 @@ const Index = () => {
     const savedResume = sessionStorage.getItem('persistedResumeText');
     const shouldPersist = sessionStorage.getItem('persistResumeEnabled') === 'true';
     
+    console.log('Loading persisted data:', { savedResume: !!savedResume, shouldPersist });
+    
     if (savedResume && shouldPersist) {
       setResumeText(savedResume);
       setPersistResume(true);
@@ -30,12 +32,16 @@ const Index = () => {
 
   // Save resume text to session storage when persist is enabled
   useEffect(() => {
+    console.log('Persist effect triggered:', { persistResume, resumeTextLength: resumeText.length });
+    
     if (persistResume && resumeText.trim()) {
       sessionStorage.setItem('persistedResumeText', resumeText);
       sessionStorage.setItem('persistResumeEnabled', 'true');
+      console.log('Resume text saved to session storage');
     } else if (!persistResume) {
       sessionStorage.removeItem('persistedResumeText');
       sessionStorage.removeItem('persistResumeEnabled');
+      console.log('Resume text removed from session storage');
     }
   }, [resumeText, persistResume]);
 
@@ -131,7 +137,10 @@ const Index = () => {
                   <Checkbox
                     id="persist-resume"
                     checked={persistResume}
-                    onCheckedChange={(checked) => setPersistResume(checked as boolean)}
+                    onCheckedChange={(checked) => {
+                      console.log('Checkbox changed:', checked);
+                      setPersistResume(checked as boolean);
+                    }}
                   />
                   <Label htmlFor="persist-resume" className="text-sm text-gray-600 cursor-pointer">
                     Remember my resume text for this session
