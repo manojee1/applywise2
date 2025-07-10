@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { Download, ArrowLeft, CheckCircle, XCircle, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface AnalysisData {
@@ -68,6 +68,93 @@ const Results = () => {
     });
   };
 
+  const copyToClipboard = async (text: string, successMessage: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: successMessage,
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy text to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyJobAnalysis = () => {
+    if (!analysis?.jobAnalysis) return;
+    
+    const content = `Job Analysis:
+
+Key Requirements:
+${analysis.jobAnalysis.keyRequirements.map(req => `• ${req}`).join('\n')}
+
+Location: ${analysis.jobAnalysis.location || 'Not specified'}
+Remote: ${analysis.jobAnalysis.remote ? 'Yes' : 'No'}
+Salary Range: ${analysis.jobAnalysis.salaryRange || 'Not specified'}`;
+    
+    copyToClipboard(content, "Job analysis copied to clipboard");
+  };
+
+  const copyResumeFeedback = () => {
+    if (!analysis?.resumeAnalysis) return;
+    
+    const content = `Resume Feedback:
+
+Fit Assessment:
+${analysis.resumeAnalysis.honestFeedback}
+
+Recommended Improvements:
+${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}
+
+ATS Keywords to Include:
+${analysis.resumeAnalysis.atsKeywords.join(', ')}`;
+    
+    copyToClipboard(content, "Resume feedback copied to clipboard");
+  };
+
+  const copyDocuments = () => {
+    let content = "Documents:\n\n";
+    
+    if (analysis?.updatedResume) {
+      content += `Updated Resume:\n${analysis.updatedResume}\n\n`;
+    }
+    
+    if (analysis?.coverLetter) {
+      content += `Cover Letter:\n${analysis.coverLetter}\n\n`;
+    }
+    
+    if (analysis?.linkedinEmail) {
+      content += `LinkedIn Outreach Email:\n${analysis.linkedinEmail}`;
+    }
+    
+    copyToClipboard(content, "Documents copied to clipboard");
+  };
+
+  const copyInterviewPrep = () => {
+    if (!analysis?.interviewPrep) return;
+    
+    let content = `Interview Preparation:
+
+Tell Me About Yourself:
+${analysis.interviewPrep.tellMeAboutYourself}
+
+What Are You Looking For in Your Next Role?:
+${analysis.interviewPrep.whatAreYouLookingFor}
+
+Additional Interview Questions & Answers:
+`;
+    
+    analysis.interviewPrep.additionalQuestions.forEach((qa, index) => {
+      content += `\n${index + 1}. Q: ${qa.question}\n   A: ${qa.answer}\n`;
+    });
+    
+    copyToClipboard(content, "Interview preparation copied to clipboard");
+  };
+
   if (!analysis) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center">
@@ -122,7 +209,17 @@ const Results = () => {
                 <TabsContent value="job-analysis">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Job Analysis</CardTitle>
+                      <CardTitle className="flex items-center justify-between">
+                        Job Analysis
+                        <Button
+                          onClick={copyJobAnalysis}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {analysis.jobAnalysis && (
@@ -157,6 +254,17 @@ const Results = () => {
 
                 <TabsContent value="resume-feedback">
                   <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold">Resume Feedback</h2>
+                      <Button
+                        onClick={copyResumeFeedback}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {analysis.resumeAnalysis && (
                       <>
                         <Card>
@@ -209,6 +317,17 @@ const Results = () => {
 
                 <TabsContent value="documents">
                   <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold">Documents</h2>
+                      <Button
+                        onClick={copyDocuments}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {analysis.updatedResume && (
                       <Card>
                         <CardHeader>
@@ -249,6 +368,17 @@ const Results = () => {
                 <TabsContent value="interview-prep">
                   {analysis.interviewPrep && (
                     <div className="space-y-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold">Interview Preparation</h2>
+                        <Button
+                          onClick={copyInterviewPrep}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <Card>
                         <CardHeader>
                           <CardTitle>Tell Me About Yourself</CardTitle>
