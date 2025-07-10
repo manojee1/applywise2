@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
@@ -8,42 +8,12 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
-  const [persistResume, setPersistResume] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
-
-  // Load persisted resume text on component mount
-  useEffect(() => {
-    const savedResume = sessionStorage.getItem('persistedResumeText');
-    const shouldPersist = sessionStorage.getItem('persistResumeEnabled') === 'true';
-    
-    console.log('Loading persisted data:', { savedResume: !!savedResume, shouldPersist });
-    
-    if (savedResume && shouldPersist) {
-      setResumeText(savedResume);
-      setPersistResume(true);
-    }
-  }, []);
-
-  // Save resume text to session storage when persist is enabled
-  useEffect(() => {
-    console.log('Persist effect triggered:', { persistResume, resumeTextLength: resumeText.length });
-    
-    if (persistResume && resumeText.trim()) {
-      sessionStorage.setItem('persistedResumeText', resumeText);
-      sessionStorage.setItem('persistResumeEnabled', 'true');
-      console.log('Resume text saved to session storage');
-    } else if (!persistResume) {
-      sessionStorage.removeItem('persistedResumeText');
-      sessionStorage.removeItem('persistResumeEnabled');
-      console.log('Resume text removed from session storage');
-    }
-  }, [resumeText, persistResume]);
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
@@ -133,19 +103,6 @@ const Index = () => {
                   onChange={(e) => setResumeText(e.target.value)}
                   className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
-                <div className="flex items-center space-x-2 mt-2">
-                  <Checkbox
-                    id="persist-resume"
-                    checked={persistResume}
-                    onCheckedChange={(checked) => {
-                      console.log('Checkbox changed:', checked);
-                      setPersistResume(checked as boolean);
-                    }}
-                  />
-                  <Label htmlFor="persist-resume" className="text-sm text-gray-600 cursor-pointer">
-                    Remember my resume text for this session
-                  </Label>
-                </div>
               </div>
               
               <AnalyzeButton
