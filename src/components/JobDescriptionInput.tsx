@@ -11,14 +11,15 @@ const JobDescriptionInput = ({ value, onChange }: JobDescriptionInputProps) => {
   return (
     <div className="space-y-2">
       <Label htmlFor="job-description" className="text-base font-medium text-gray-700">
-        Job Description
+        Job Description <span className="text-red-500">*</span>
       </Label>
       <Textarea
         id="job-description"
-        placeholder="Paste the job description here (optional)"
+        placeholder="Paste the job description here..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="min-h-[120px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+        required
       />
     </div>
   );

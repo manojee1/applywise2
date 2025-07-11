@@ -155,6 +155,59 @@ Additional Interview Questions & Answers:
     copyToClipboard(content, "Interview preparation copied to clipboard");
   };
 
+  const copyAllContent = () => {
+    if (!analysis) return;
+    
+    let allContent = "Complete Resume Analysis Report\n\n";
+    
+    // Job Analysis
+    if (analysis.jobAnalysis) {
+      allContent += `JOB ANALYSIS\n${'='.repeat(50)}\n\n`;
+      allContent += `Key Requirements:\n${analysis.jobAnalysis.keyRequirements.map(req => `• ${req}`).join('\n')}\n\n`;
+      allContent += `Location: ${analysis.jobAnalysis.location || 'Not specified'}\n`;
+      allContent += `Remote: ${analysis.jobAnalysis.remote ? 'Yes' : 'No'}\n`;
+      allContent += `Salary Range: ${analysis.jobAnalysis.salaryRange || 'Not specified'}\n\n`;
+    }
+    
+    // Resume Feedback
+    if (analysis.resumeAnalysis) {
+      allContent += `RESUME FEEDBACK\n${'='.repeat(50)}\n\n`;
+      allContent += `Fit Assessment:\n${analysis.resumeAnalysis.honestFeedback}\n\n`;
+      allContent += `Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
+      allContent += `ATS Keywords to Include:\n${analysis.resumeAnalysis.atsKeywords.join(', ')}\n\n`;
+    }
+    
+    // Documents
+    if (analysis.updatedResume || analysis.coverLetter || analysis.linkedinEmail) {
+      allContent += `DOCUMENTS\n${'='.repeat(50)}\n\n`;
+      
+      if (analysis.updatedResume) {
+        allContent += `Updated Resume:\n${analysis.updatedResume}\n\n`;
+      }
+      
+      if (analysis.coverLetter) {
+        allContent += `Cover Letter:\n${analysis.coverLetter}\n\n`;
+      }
+      
+      if (analysis.linkedinEmail) {
+        allContent += `LinkedIn Outreach Email:\n${analysis.linkedinEmail}\n\n`;
+      }
+    }
+    
+    // Interview Prep
+    if (analysis.interviewPrep) {
+      allContent += `INTERVIEW PREPARATION\n${'='.repeat(50)}\n\n`;
+      allContent += `Tell Me About Yourself:\n${analysis.interviewPrep.tellMeAboutYourself}\n\n`;
+      allContent += `What Are You Looking For in Your Next Role?:\n${analysis.interviewPrep.whatAreYouLookingFor}\n\n`;
+      allContent += `Additional Interview Questions & Answers:\n`;
+      analysis.interviewPrep.additionalQuestions.forEach((qa, index) => {
+        allContent += `\n${index + 1}. Q: ${qa.question}\n   A: ${qa.answer}\n`;
+      });
+    }
+    
+    copyToClipboard(allContent, "Complete analysis copied to clipboard");
+  };
+
   if (!analysis) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center">
@@ -176,13 +229,23 @@ Additional Interview Questions & Answers:
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Analyzer
             </Button>
-            <Button
-              onClick={handleDownload}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download Analysis
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={copyAllContent}
+                variant="outline"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy All
+              </Button>
+              <Button
+                onClick={handleDownload}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download Analysis
+              </Button>
+            </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-xl p-6">
