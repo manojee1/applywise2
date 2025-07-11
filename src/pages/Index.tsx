@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
 import AnalyzeButton from "@/components/AnalyzeButton";
+import AnalysisProgress from "@/components/AnalysisProgress";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,44 +78,47 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-xl p-8">
-            <Header />
-            
-            <div className="space-y-6">
-              <JobDescriptionInput
-                value={jobDescription}
-                onChange={setJobDescription}
-              />
+    <>
+      <AnalysisProgress isVisible={isAnalyzing} />
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-xl p-8">
+              <Header />
               
-              <div className="space-y-2">
-                <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
-                  Resume Text <span className="text-red-500">*</span>
-                </Label>
-                <p className="text-sm text-gray-600 mb-2">
-                  Please copy and paste the text content of your resume below:
-                </p>
-                <Textarea
-                  id="resume-text"
-                  placeholder="Paste your resume text here..."
-                  value={resumeText}
-                  onChange={(e) => setResumeText(e.target.value)}
-                  className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              <div className="space-y-6">
+                <JobDescriptionInput
+                  value={jobDescription}
+                  onChange={setJobDescription}
+                />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
+                    Resume Text <span className="text-red-500">*</span>
+                  </Label>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Please copy and paste the text content of your resume below:
+                  </p>
+                  <Textarea
+                    id="resume-text"
+                    placeholder="Paste your resume text here..."
+                    value={resumeText}
+                    onChange={(e) => setResumeText(e.target.value)}
+                    className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <AnalyzeButton
+                  onClick={handleAnalyze}
+                  isDisabled={!jobDescription.trim() || !resumeText.trim()}
+                  isLoading={isAnalyzing}
                 />
               </div>
-              
-              <AnalyzeButton
-                onClick={handleAnalyze}
-                isDisabled={!jobDescription.trim() || !resumeText.trim()}
-                isLoading={isAnalyzing}
-              />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
