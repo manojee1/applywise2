@@ -50,9 +50,55 @@ const Results = () => {
 
   const handleDownload = () => {
     if (!analysis) return;
+    
+    let allContent = "Complete Resume Analysis Report\n\n";
+    
+    // Job Analysis
+    if (analysis.jobAnalysis) {
+      allContent += `JOB ANALYSIS\n${'='.repeat(50)}\n\n`;
+      allContent += `Key Requirements:\n${analysis.jobAnalysis.keyRequirements.map(req => `• ${req}`).join('\n')}\n\n`;
+      allContent += `Location: ${analysis.jobAnalysis.location || 'Not specified'}\n`;
+      allContent += `Remote: ${analysis.jobAnalysis.remote ? 'Yes' : 'No'}\n`;
+      allContent += `Salary Range: ${analysis.jobAnalysis.salaryRange || 'Not specified'}\n\n`;
+    }
+    
+    // Resume Feedback
+    if (analysis.resumeAnalysis) {
+      allContent += `RESUME FEEDBACK\n${'='.repeat(50)}\n\n`;
+      allContent += `Fit Assessment:\n${analysis.resumeAnalysis.honestFeedback}\n\n`;
+      allContent += `Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
+      allContent += `ATS Keywords to Include:\n${analysis.resumeAnalysis.atsKeywords.join(', ')}\n\n`;
+    }
+    
+    // Documents
+    if (analysis.updatedResume || analysis.coverLetter || analysis.linkedinEmail) {
+      allContent += `DOCUMENTS\n${'='.repeat(50)}\n\n`;
+      
+      if (analysis.updatedResume) {
+        allContent += `Updated Resume:\n${analysis.updatedResume}\n\n`;
+      }
+      
+      if (analysis.coverLetter) {
+        allContent += `Cover Letter:\n${analysis.coverLetter}\n\n`;
+      }
+      
+      if (analysis.linkedinEmail) {
+        allContent += `LinkedIn Outreach Email:\n${analysis.linkedinEmail}\n\n`;
+      }
+    }
+    
+    // Interview Prep
+    if (analysis.interviewPrep) {
+      allContent += `INTERVIEW PREPARATION\n${'='.repeat(50)}\n\n`;
+      allContent += `Tell Me About Yourself:\n${analysis.interviewPrep.tellMeAboutYourself}\n\n`;
+      allContent += `What Are You Looking For in Your Next Role?:\n${analysis.interviewPrep.whatAreYouLookingFor}\n\n`;
+      allContent += `Additional Interview Questions & Answers:\n`;
+      analysis.interviewPrep.additionalQuestions.forEach((qa, index) => {
+        allContent += `\n${index + 1}. Q: ${qa.question}\n   A: ${qa.answer}\n`;
+      });
+    }
 
-    const content = analysis.rawAnalysis || JSON.stringify(analysis, null, 2);
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([allContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -242,8 +288,7 @@ Additional Interview Questions & Answers:
                 onClick={handleDownload}
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Download Analysis
+                <Download className="w-4 h-4" />
               </Button>
             </div>
           </div>
