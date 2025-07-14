@@ -57,7 +57,9 @@ const AnalysisProgress = ({ isVisible }: AnalysisProgressProps) => {
     steps.forEach((step, index) => {
       const timeout = setTimeout(() => {
         setCurrentStep(index);
-        setProgress(((index + 1) / steps.length) * 100);
+        // Don't reach 100% until the very end - cap at 90% for last step
+        const progressValue = index === steps.length - 1 ? 90 : ((index + 1) / steps.length) * 90;
+        setProgress(progressValue);
       }, currentTime);
       
       timeouts.push(timeout);
