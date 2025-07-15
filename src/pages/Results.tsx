@@ -404,14 +404,9 @@ Additional Interview Questions & Answers:
                             <div>
                               <h3 className="font-semibold mb-2">Key Requirements:</h3>
                               <ul className="space-y-2">
-                                {analyzeRequirements().map((req, index) => (
-                                  <li key={index} className="flex items-center gap-2">
-                                    {req.met ? (
-                                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                                    ) : (
-                                      <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                                    )}
-                                    <span className="text-gray-700">{req.requirement}</span>
+                                {analysis.jobAnalysis.keyRequirements.map((req, index) => (
+                                  <li key={index} className="text-gray-700">
+                                    • {req}
                                   </li>
                                 ))}
                               </ul>
