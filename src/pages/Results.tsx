@@ -515,6 +515,12 @@ Additional Interview Questions & Answers:
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
+                    
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                      <p className="text-amber-800 text-sm">
+                        <strong>Disclaimer:</strong> The suggested text is for guidance purposes only. The content is AI-generated and users should verify the accuracy and factual correctness of all edits before use.
+                      </p>
+                    </div>
                     {analysis.updatedResume && (
                       <Card>
                         <CardHeader>
@@ -627,6 +633,12 @@ Additional Interview Questions & Answers:
                           ))}
                         </CardContent>
                       </Card>
+                      
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
+                        <p className="text-amber-800 text-sm">
+                          <strong>Disclaimer:</strong> The suggested interview preparation content is for guidance purposes only. The answers are AI-generated and users should verify they are factual and accurate. Actual interview questions may differ from those provided.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </TabsContent>
