@@ -81,11 +81,20 @@ const Results = () => {
   };
 
   const getRequirementScore = (): number => {
-    const requirements = analyzeRequirements();
-    if (requirements.length === 0) return 0;
+    if (!analysis?.resumeAnalysis || !analysis?.jobAnalysis?.keyRequirements) return 0;
     
-    const metCount = requirements.filter(req => req.met).length;
-    return Math.round((metCount / requirements.length) * 100);
+    // Calculate score based on suitability and number of improvements needed
+    const baseScore = analysis.resumeAnalysis.suitable ? 65 : 25;
+    const improvementsCount = analysis.resumeAnalysis.improvements?.length || 0;
+    const requirementsCount = analysis.jobAnalysis.keyRequirements.length;
+    
+    // Adjust score based on improvements needed relative to requirements
+    const improvementPenalty = Math.min(improvementsCount * 3, 30);
+    const adjustedScore = Math.max(baseScore - improvementPenalty, 0);
+    
+    // Cap the score based on suitability
+    const maxScore = analysis.resumeAnalysis.suitable ? 85 : 40;
+    return Math.min(adjustedScore, maxScore);
   };
 
   const getScoreColor = (score: number): string => {
