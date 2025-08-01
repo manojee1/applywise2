@@ -84,7 +84,7 @@ const Results = () => {
     if (!analysis?.resumeAnalysis || !analysis?.jobAnalysis?.keyRequirements) return 0;
     
     // Calculate score based on suitability and number of improvements needed
-    const baseScore = analysis.resumeAnalysis.suitable ? 65 : 25;
+    const baseScore = analysis.resumeAnalysis.suitable ? 100 : 25;
     const improvementsCount = analysis.resumeAnalysis.improvements?.length || 0;
     const requirementsCount = analysis.jobAnalysis.keyRequirements.length;
     
