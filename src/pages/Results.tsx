@@ -692,6 +692,19 @@ Additional Interview Questions & Answers:
               </Tabs>
             )}
           </div>
+          
+          {/* Feedback Link */}
+          <div className="mt-8 text-center">
+            <p className="text-white/80 text-sm mb-2">
+              Found this helpful? We'd love to hear your feedback!
+            </p>
+            <a
+              href="mailto:manojee4@gmail.com?subject=Resume Analyzer Feedback"
+              className="inline-flex items-center text-white hover:text-white/80 underline transition-colors"
+            >
+              Send Feedback
+            </a>
+          </div>
         </div>
       </div>
     </div>
