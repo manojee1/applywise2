@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import JobDescriptionInput from "@/components/JobDescriptionInput";
@@ -15,6 +15,12 @@ const Index = () => {
   const [resumeText, setResumeText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
+  const jobDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const resumeTextRef = useRef<HTMLTextAreaElement>(null);
+
+  const countWords = (text: string): number => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  };
 
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
@@ -32,6 +38,30 @@ const Index = () => {
         description: "Please paste your resume text in the text area below",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Validate word count for job description
+    const jobDescriptionWordCount = countWords(jobDescription);
+    if (jobDescriptionWordCount > 900) {
+      toast({
+        title: "Job description too long",
+        description: `Please reduce your job description to 900 words or less. Current: ${jobDescriptionWordCount} words.`,
+        variant: "destructive",
+      });
+      jobDescriptionRef.current?.select();
+      return;
+    }
+
+    // Validate word count for resume text
+    const resumeWordCount = countWords(resumeText);
+    if (resumeWordCount > 1000) {
+      toast({
+        title: "Resume text too long",
+        description: `Please reduce your resume text to 1000 words or less. Current: ${resumeWordCount} words.`,
+        variant: "destructive",
+      });
+      resumeTextRef.current?.select();
       return;
     }
 
@@ -88,6 +118,7 @@ const Index = () => {
               
               <div className="space-y-6">
                 <JobDescriptionInput
+                  ref={jobDescriptionRef}
                   value={jobDescription}
                   onChange={setJobDescription}
                 />
@@ -100,6 +131,7 @@ const Index = () => {
                     Please copy and paste the text content of your resume below:
                   </p>
                   <Textarea
+                    ref={resumeTextRef}
                     id="resume-text"
                     placeholder="Paste your resume text here..."
                     value={resumeText}

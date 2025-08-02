@@ -1,4 +1,5 @@
 
+import { forwardRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -7,13 +8,15 @@ interface JobDescriptionInputProps {
   onChange: (value: string) => void;
 }
 
-const JobDescriptionInput = ({ value, onChange }: JobDescriptionInputProps) => {
+const JobDescriptionInput = forwardRef<HTMLTextAreaElement, JobDescriptionInputProps>(
+  ({ value, onChange }, ref) => {
   return (
     <div className="space-y-2">
       <Label htmlFor="job-description" className="text-base font-medium text-gray-700">
         Job Description <span className="text-red-500">*</span>
       </Label>
       <Textarea
+        ref={ref}
         id="job-description"
         placeholder="Paste the job description here..."
         value={value}
@@ -23,6 +26,9 @@ const JobDescriptionInput = ({ value, onChange }: JobDescriptionInputProps) => {
       />
     </div>
   );
-};
+  }
+);
+
+JobDescriptionInput.displayName = "JobDescriptionInput";
 
 export default JobDescriptionInput;
