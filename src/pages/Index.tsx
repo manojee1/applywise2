@@ -22,6 +22,30 @@ const Index = () => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
 
+  const validateJobDescription = () => {
+    const wordCount = countWords(jobDescription);
+    if (wordCount > 900) {
+      toast({
+        title: "Job description too long",
+        description: `Please reduce your job description to 900 words or less. Current: ${wordCount} words.`,
+        variant: "destructive",
+      });
+      jobDescriptionRef.current?.select();
+    }
+  };
+
+  const validateResumeText = () => {
+    const wordCount = countWords(resumeText);
+    if (wordCount > 1000) {
+      toast({
+        title: "Resume text too long",
+        description: `Please reduce your resume text to 1000 words or less. Current: ${wordCount} words.`,
+        variant: "destructive",
+      });
+      resumeTextRef.current?.select();
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
       toast({
@@ -121,6 +145,7 @@ const Index = () => {
                   ref={jobDescriptionRef}
                   value={jobDescription}
                   onChange={setJobDescription}
+                  onBlur={validateJobDescription}
                 />
                 
                 <div className="space-y-2">
@@ -136,6 +161,7 @@ const Index = () => {
                     placeholder="Paste your resume text here..."
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
+                    onBlur={validateResumeText}
                     className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
