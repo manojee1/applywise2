@@ -137,10 +137,13 @@ const Index = () => {
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
                     onBlur={() => {
+                      console.log("Resume text onBlur triggered, value length:", resumeText.length);
                       if (!resumeText.trim()) return;
                       
                       const wordCount = countWords(resumeText);
+                      console.log("Resume text word count:", wordCount);
                       if (wordCount > 1000) {
+                        console.log("Resume text validation failed - showing toast");
                         toast({
                           title: "Resume text too long",
                           description: `Please reduce your resume text to 1000 words or less. Current: ${wordCount} words.`,

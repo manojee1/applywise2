@@ -16,16 +16,20 @@ const JobDescriptionInput = forwardRef<HTMLTextAreaElement, JobDescriptionInputP
     };
 
     const handleBlur = () => {
+      console.log("Job description onBlur triggered, value length:", value.length);
       if (!value.trim()) return;
       
       const wordCount = countWords(value);
+      console.log("Job description word count:", wordCount);
       if (wordCount > 900) {
+        console.log("Job description validation failed - showing toast");
         toast({
           title: "Job description too long",
           description: `Please reduce your job description to 900 words or less. Current: ${wordCount} words.`,
           variant: "destructive",
         });
         if (ref && 'current' in ref && ref.current) {
+          console.log("Selecting job description text");
           ref.current.select();
         }
       }
