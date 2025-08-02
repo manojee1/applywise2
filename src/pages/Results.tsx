@@ -278,6 +278,44 @@ Additional Interview Questions & Answers:
     copyToClipboard(content, "Interview preparation copied to clipboard");
   };
 
+  const highlightATSKeywords = (text: string): JSX.Element => {
+    if (!analysis?.resumeAnalysis?.atsKeywords || analysis.resumeAnalysis.atsKeywords.length === 0) {
+      return <span>{text}</span>;
+    }
+
+    let highlightedText = text;
+    const keywords = analysis.resumeAnalysis.atsKeywords;
+    
+    // Sort keywords by length (longest first) to avoid partial replacements
+    const sortedKeywords = [...keywords].sort((a, b) => b.length - a.length);
+    
+    // Create a map to track replacements
+    const replacements: { [key: string]: string } = {};
+    
+    sortedKeywords.forEach((keyword, index) => {
+      const placeholder = `__KEYWORD_${index}__`;
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      if (highlightedText.match(regex)) {
+        replacements[placeholder] = keyword;
+        highlightedText = highlightedText.replace(regex, placeholder);
+      }
+    });
+    
+    // Split by placeholders and reconstruct with bold text
+    const parts = highlightedText.split(/(__KEYWORD_\d+__)/);
+    
+    return (
+      <span>
+        {parts.map((part, index) => {
+          if (part.startsWith('__KEYWORD_') && replacements[part]) {
+            return <strong key={index}>{replacements[part]}</strong>;
+          }
+          return part;
+        })}
+      </span>
+    );
+  };
+
   const copyAllContent = () => {
     if (!analysis) return;
     
@@ -546,9 +584,9 @@ Additional Interview Questions & Answers:
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
-                            {analysis.updatedResume}
-                          </pre>
+                          <div className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
+                            {highlightATSKeywords(analysis.updatedResume)}
+                          </div>
                         </CardContent>
                       </Card>
                     )}
