@@ -136,6 +136,19 @@ const Index = () => {
                     placeholder="Paste your resume text here..."
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
+                    onBlur={() => {
+                      if (!resumeText.trim()) return;
+                      
+                      const wordCount = countWords(resumeText);
+                      if (wordCount > 1000) {
+                        toast({
+                          title: "Resume text too long",
+                          description: `Please reduce your resume text to 1000 words or less. Current: ${wordCount} words.`,
+                          variant: "destructive",
+                        });
+                        resumeTextRef.current?.select();
+                      }
+                    }}
                     className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
