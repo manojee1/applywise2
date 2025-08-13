@@ -72,7 +72,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5.0-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
