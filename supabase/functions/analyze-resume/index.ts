@@ -72,7 +72,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini',
+        model: 'gpt-5-mini-2025-08-07',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
@@ -80,8 +80,7 @@ serve(async (req) => {
             content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
           }
         ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
       }),
     });
 
