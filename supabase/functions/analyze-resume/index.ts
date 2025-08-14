@@ -100,20 +100,25 @@ serve(async (req) => {
 
     console.log('Analysis completed successfully');
 
-    // Try to parse as JSON, fallback to plain text if parsing fails
+    // Try to parse as JSON, return structured data
     let analysis;
     try {
       analysis = JSON.parse(analysisContent);
       console.log('Successfully parsed JSON analysis');
+      
+      // Return the parsed analysis directly, not wrapped in another object
+      return new Response(JSON.stringify({ analysis }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     } catch (parseError) {
       console.error('Failed to parse JSON:', parseError);
       console.log('Raw content:', analysisContent);
-      analysis = { rawAnalysis: analysisContent };
+      
+      // If parsing fails, return the raw content for debugging
+      return new Response(JSON.stringify({ analysis: { rawAnalysis: analysisContent } }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
-
-    return new Response(JSON.stringify({ analysis }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
     return new Response(JSON.stringify({ error: error.message }), {
