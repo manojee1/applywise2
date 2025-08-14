@@ -63,7 +63,7 @@ serve(async (req) => {
       throw new Error('Job description and resume text are required');
     }
 
-    console.log('Analyzing resume with OpenAI GPT-4.1...');
+    console.log('Analyzing resume with OpenAI GPT-4o-mini...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,7 +72,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
@@ -80,17 +80,23 @@ serve(async (req) => {
             content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
           }
         ],
-        max_completion_tokens: 4000,
+        temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('OpenAI API error:', error);
       throw new Error(error.error?.message || 'Failed to analyze resume');
     }
 
     const data = await response.json();
+    console.log('OpenAI response data:', data);
+    
     const analysisContent = data.choices[0].message.content;
+    console.log('Analysis content length:', analysisContent?.length);
+    console.log('Analysis content preview:', analysisContent?.substring(0, 200));
 
     console.log('Analysis completed successfully');
 
@@ -98,7 +104,10 @@ serve(async (req) => {
     let analysis;
     try {
       analysis = JSON.parse(analysisContent);
-    } catch {
+      console.log('Successfully parsed JSON analysis');
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      console.log('Raw content:', analysisContent);
       analysis = { rawAnalysis: analysisContent };
     }
 
