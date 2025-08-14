@@ -63,7 +63,7 @@ serve(async (req) => {
       throw new Error('Job description and resume text are required');
     }
 
-    console.log('Analyzing resume with OpenAI GPT-4o-mini...');
+    console.log('Analyzing resume with OpenAI GPT-4.1...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -72,7 +72,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { 
@@ -87,38 +87,25 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('OpenAI API error:', error);
       throw new Error(error.error?.message || 'Failed to analyze resume');
     }
 
     const data = await response.json();
-    console.log('OpenAI response data:', data);
-    
     const analysisContent = data.choices[0].message.content;
-    console.log('Analysis content length:', analysisContent?.length);
-    console.log('Analysis content preview:', analysisContent?.substring(0, 200));
 
     console.log('Analysis completed successfully');
 
-    // Try to parse as JSON, return structured data
+    // Try to parse as JSON, fallback to plain text if parsing fails
     let analysis;
     try {
       analysis = JSON.parse(analysisContent);
-      console.log('Successfully parsed JSON analysis');
-      
-      // Return the parsed analysis directly, not wrapped in another object
-      return new Response(JSON.stringify({ analysis }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } catch (parseError) {
-      console.error('Failed to parse JSON:', parseError);
-      console.log('Raw content:', analysisContent);
-      
-      // If parsing fails, return the raw content for debugging
-      return new Response(JSON.stringify({ analysis: { rawAnalysis: analysisContent } }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    } catch {
+      analysis = { rawAnalysis: analysisContent };
     }
+
+    return new Response(JSON.stringify({ analysis }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
     return new Response(JSON.stringify({ error: error.message }), {
