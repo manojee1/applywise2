@@ -9,11 +9,14 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showCoverLetters, setShowCoverLetters] = useState(false);
+  const [showInterviewPrep, setShowInterviewPrep] = useState(false);
   const navigate = useNavigate();
   const jobDescriptionRef = useRef<HTMLTextAreaElement>(null);
   const resumeTextRef = useRef<HTMLTextAreaElement>(null);
@@ -96,7 +99,9 @@ const Index = () => {
       const { data, error } = await supabase.functions.invoke('analyze-resume', {
         body: {
           jobDescription: jobDescription.trim(),
-          resumeText: resumeText.trim()
+          resumeText: resumeText.trim(),
+          showCoverLetters,
+          showInterviewPrep
         }
       });
 
@@ -164,6 +169,42 @@ const Index = () => {
                     onBlur={validateResumeText}
                     className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-gray-200">
+                  <Label className="text-base font-medium text-gray-700">
+                    Additional Options
+                  </Label>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="show-cover-letters"
+                        checked={showCoverLetters}
+                        onCheckedChange={(checked) => setShowCoverLetters(checked === true)}
+                      />
+                      <Label
+                        htmlFor="show-cover-letters"
+                        className="text-sm font-normal text-gray-600 cursor-pointer"
+                      >
+                        Show Cover Letters (includes cover letter and LinkedIn outreach email)
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="show-interview-prep"
+                        checked={showInterviewPrep}
+                        onCheckedChange={(checked) => setShowInterviewPrep(checked === true)}
+                      />
+                      <Label
+                        htmlFor="show-interview-prep"
+                        className="text-sm font-normal text-gray-600 cursor-pointer"
+                      >
+                        Show Interview Prep
+                      </Label>
+                    </div>
+                  </div>
                 </div>
                 
                 <AnalyzeButton

@@ -422,11 +422,13 @@ Additional Interview Questions & Answers:
               </Card>
             ) : (
               <Tabs defaultValue="job-analysis" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className={`grid w-full ${analysis.interviewPrep ? 'grid-cols-4' : 'grid-cols-3'}`}>
                   <TabsTrigger value="job-analysis">Job Analysis</TabsTrigger>
                   <TabsTrigger value="resume-feedback">Resume Feedback</TabsTrigger>
                   <TabsTrigger value="documents">Documents</TabsTrigger>
-                  <TabsTrigger value="interview-prep">Interview Prep</TabsTrigger>
+                  {analysis.interviewPrep && (
+                    <TabsTrigger value="interview-prep">Interview Prep</TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="job-analysis">
@@ -635,8 +637,9 @@ Additional Interview Questions & Answers:
                   </div>
                 </TabsContent>
 
-                <TabsContent value="interview-prep">
-                  {analysis.interviewPrep && (
+                {analysis.interviewPrep && (
+                  <TabsContent value="interview-prep">
+                    {analysis.interviewPrep && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-semibold">Interview Preparation</h2>
@@ -686,9 +689,10 @@ Additional Interview Questions & Answers:
                           <strong>Disclaimer:</strong> The suggested interview preparation content is for guidance purposes only. The answers are AI-generated and users should verify they are factual and accurate. Actual interview questions may differ from those provided.
                         </p>
                       </div>
-                    </div>
-                  )}
-                </TabsContent>
+                     </div>
+                   )}
+                  </TabsContent>
+                )}
               </Tabs>
             )}
           </div>

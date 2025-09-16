@@ -9,21 +9,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SYSTEM_PROMPT = `You are a professional and helpful career coach that is looking to help jobseekers find the best job that matches their background.
-
-Your analysis should follow this structure:
+function buildSystemPrompt(showCoverLetters: boolean, showInterviewPrep: boolean): string {
+  let analysisSteps = `Your analysis should follow this structure:
 1. Analyze the job description and list out the key requirements for the role, where it is based or if its remote, and what the salary range is if there is one
 2. Analyze the resume, Analyze the resume for general format, tone, spelling mistakes, repetitive terms, use of action verbs, and quantification of results.  Also tell me honestly if my background is suitable for the role and why or why not.  Be brutally honest.
 3. Tell me if there are any changes you would make to my resume to improve my chances. Include any keywords that ATS software in way that flows with the resume
 4. Do not fabricate any work experience, be factual. But you are welcome to ask questions along the way
-5. Based on the suggestions, provide an updated resume version with improvements
-6. Prepare a short succinct cover letter for the role
-7. Prepare a LinkedIn email that can be sent to contacts
-8. Prepare interview questions and responses. One question should be "Tell me about yourself." Another should be "What are you looking for in your next role." Prepare 8 additional questions. For senior roles, answer in a more strategic fashion.
-9. Do not use em-dashes in any of your responses.
+5. Based on the suggestions, provide an updated resume version with improvements`;
 
-Format your response as JSON with the following structure:
-{
+  if (showCoverLetters) {
+    analysisSteps += `
+6. Prepare a short succinct cover letter for the role
+7. Prepare a LinkedIn email that can be sent to contacts`;
+  }
+
+  if (showInterviewPrep) {
+    analysisSteps += `
+${showCoverLetters ? '8' : '6'}. Prepare interview questions and responses. One question should be "Tell me about yourself." Another should be "What are you looking for in your next role." Prepare 8 additional questions. For senior roles, answer in a more strategic fashion.`;
+  }
+
+  analysisSteps += `
+${showCoverLetters || showInterviewPrep ? (showCoverLetters && showInterviewPrep ? '9' : '7') : '6'}. Do not use em-dashes in any of your responses.`;
+
+  let jsonStructure = `{
   "jobAnalysis": {
     "keyRequirements": [],
     "location": "",
@@ -36,9 +44,16 @@ Format your response as JSON with the following structure:
     "improvements": [],
     "atsKeywords": []
   },
-  "updatedResume": "",
+  "updatedResume": ""`;
+
+  if (showCoverLetters) {
+    jsonStructure += `,
   "coverLetter": "",
-  "linkedinEmail": "",
+  "linkedinEmail": ""`;
+  }
+
+  if (showInterviewPrep) {
+    jsonStructure += `,
   "interviewPrep": {
     "tellMeAboutYourself": "",
     "whatAreYouLookingFor": "",
@@ -48,8 +63,19 @@ Format your response as JSON with the following structure:
         "answer": ""
       }
     ]
+  }`;
   }
+
+  jsonStructure += `
 }`;
+
+  return `You are a professional and helpful career coach that is looking to help jobseekers find the best job that matches their background.
+
+${analysisSteps}
+
+Format your response as JSON with the following structure:
+${jsonStructure}`;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -57,13 +83,15 @@ serve(async (req) => {
   }
 
   try {
-    const { jobDescription, resumeText } = await req.json();
+    const { jobDescription, resumeText, showCoverLetters = false, showInterviewPrep = false } = await req.json();
 
     if (!jobDescription || !resumeText) {
       throw new Error('Job description and resume text are required');
     }
 
-    console.log('Analyzing resume with OpenAI GPT-4.1...');
+    console.log('Analyzing resume with OpenAI GPT-4.1...', { showCoverLetters, showInterviewPrep });
+    
+    const systemPrompt = buildSystemPrompt(showCoverLetters, showInterviewPrep);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -74,7 +102,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
             content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
