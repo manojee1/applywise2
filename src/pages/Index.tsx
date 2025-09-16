@@ -155,7 +155,7 @@ const Index = () => {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <Checkbox id="show-cover-letters" checked={showCoverLetters} onCheckedChange={checked => setShowCoverLetters(checked === true)} />
-                      <Label htmlFor="show-cover-letters" className="text-sm font-normal text-gray-600 cursor-pointer">Create  Cover letter and LinkedIn outreach email)</Label>
+                      <Label htmlFor="show-cover-letters" className="text-sm font-normal text-gray-600 cursor-pointer">Create Cover letter and LinkedIn outreach email</Label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
