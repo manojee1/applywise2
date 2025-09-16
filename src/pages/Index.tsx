@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
@@ -139,7 +138,6 @@ const Index = () => {
 
   return (
     <>
-      <Toaster />
       <AnalysisProgress isVisible={isAnalyzing} />
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600">
         <div className="container mx-auto px-4 py-12">
