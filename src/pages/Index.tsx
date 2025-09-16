@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -10,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
@@ -20,50 +18,45 @@ const Index = () => {
   const navigate = useNavigate();
   const jobDescriptionRef = useRef<HTMLTextAreaElement>(null);
   const resumeTextRef = useRef<HTMLTextAreaElement>(null);
-
   const countWords = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
-
   const validateJobDescription = () => {
     const wordCount = countWords(jobDescription);
     if (wordCount > 900) {
       toast({
         title: "Job description too long",
         description: `Please reduce your job description to 900 words or less. Current: ${wordCount} words.`,
-        variant: "destructive",
+        variant: "destructive"
       });
       jobDescriptionRef.current?.select();
     }
   };
-
   const validateResumeText = () => {
     const wordCount = countWords(resumeText);
     if (wordCount > 1000) {
       toast({
         title: "Resume text too long",
         description: `Please reduce your resume text to 1000 words or less. Current: ${wordCount} words.`,
-        variant: "destructive",
+        variant: "destructive"
       });
       resumeTextRef.current?.select();
     }
   };
-
   const handleAnalyze = async () => {
     if (!jobDescription.trim()) {
       toast({
         title: "Job description required",
         description: "Please enter a job description to analyze against",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!resumeText.trim()) {
       toast({
         title: "Resume text required",
         description: "Please paste your resume text in the text area below",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -74,7 +67,7 @@ const Index = () => {
       toast({
         title: "Job description too long",
         description: `Please reduce your job description to 900 words or less. Current: ${jobDescriptionWordCount} words.`,
-        variant: "destructive",
+        variant: "destructive"
       });
       jobDescriptionRef.current?.select();
       return;
@@ -86,17 +79,18 @@ const Index = () => {
       toast({
         title: "Resume text too long",
         description: `Please reduce your resume text to 1000 words or less. Current: ${resumeWordCount} words.`,
-        variant: "destructive",
+        variant: "destructive"
       });
       resumeTextRef.current?.select();
       return;
     }
-
     setIsAnalyzing(true);
-    
     try {
       // Call the edge function
-      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('analyze-resume', {
         body: {
           jobDescription: jobDescription.trim(),
           resumeText: resumeText.trim(),
@@ -104,40 +98,35 @@ const Index = () => {
           showInterviewPrep
         }
       });
-
       if (error) {
         throw error;
       }
-
       if (data.error) {
         throw new Error(data.error);
       }
 
       // Navigate to results page with the analysis data
-      navigate('/results', { 
-        state: { 
-          analysis: data.analysis 
-        } 
+      navigate('/results', {
+        state: {
+          analysis: data.analysis
+        }
       });
-
       toast({
         title: "Analysis Complete!",
-        description: "Your resume has been analyzed successfully.",
+        description: "Your resume has been analyzed successfully."
       });
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
         title: "Analysis Failed",
         description: error instanceof Error ? error.message : "An error occurred while analyzing your resume",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsAnalyzing(false);
     }
   };
-
-  return (
-    <>
+  return <>
       <AnalysisProgress isVisible={isAnalyzing} />
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600">
         <div className="container mx-auto px-4 py-12">
@@ -146,12 +135,7 @@ const Index = () => {
               <Header />
               
               <div className="space-y-6">
-                <JobDescriptionInput
-                  ref={jobDescriptionRef}
-                  value={jobDescription}
-                  onChange={setJobDescription}
-                  onBlur={validateJobDescription}
-                />
+                <JobDescriptionInput ref={jobDescriptionRef} value={jobDescription} onChange={setJobDescription} onBlur={validateJobDescription} />
                 
                 <div className="space-y-2">
                   <Label htmlFor="resume-text" className="text-base font-medium text-gray-700">
@@ -160,15 +144,7 @@ const Index = () => {
                   <p className="text-sm text-gray-600 mb-2">
                     Please copy and paste the text content of your resume below:
                   </p>
-                  <Textarea
-                    ref={resumeTextRef}
-                    id="resume-text"
-                    placeholder="Paste your resume text here..."
-                    value={resumeText}
-                    onChange={(e) => setResumeText(e.target.value)}
-                    onBlur={validateResumeText}
-                    className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
+                  <Textarea ref={resumeTextRef} id="resume-text" placeholder="Paste your resume text here..." value={resumeText} onChange={e => setResumeText(e.target.value)} onBlur={validateResumeText} className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-gray-200">
@@ -178,47 +154,23 @@ const Index = () => {
                   
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-cover-letters"
-                        checked={showCoverLetters}
-                        onCheckedChange={(checked) => setShowCoverLetters(checked === true)}
-                      />
-                      <Label
-                        htmlFor="show-cover-letters"
-                        className="text-sm font-normal text-gray-600 cursor-pointer"
-                      >
-                        Show Cover Letters (includes cover letter and LinkedIn outreach email)
-                      </Label>
+                      <Checkbox id="show-cover-letters" checked={showCoverLetters} onCheckedChange={checked => setShowCoverLetters(checked === true)} />
+                      <Label htmlFor="show-cover-letters" className="text-sm font-normal text-gray-600 cursor-pointer">Create  Cover letter and LinkedIn outreach email)</Label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-interview-prep"
-                        checked={showInterviewPrep}
-                        onCheckedChange={(checked) => setShowInterviewPrep(checked === true)}
-                      />
-                      <Label
-                        htmlFor="show-interview-prep"
-                        className="text-sm font-normal text-gray-600 cursor-pointer"
-                      >
-                        Show Interview Prep
-                      </Label>
+                      <Checkbox id="show-interview-prep" checked={showInterviewPrep} onCheckedChange={checked => setShowInterviewPrep(checked === true)} />
+                      <Label htmlFor="show-interview-prep" className="text-sm font-normal text-gray-600 cursor-pointer">Create Interview guide</Label>
                     </div>
                   </div>
                 </div>
                 
-                <AnalyzeButton
-                  onClick={handleAnalyze}
-                  isDisabled={!jobDescription.trim() || !resumeText.trim()}
-                  isLoading={isAnalyzing}
-                />
+                <AnalyzeButton onClick={handleAnalyze} isDisabled={!jobDescription.trim() || !resumeText.trim()} isLoading={isAnalyzing} />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default Index;
