@@ -18,6 +18,10 @@ interface AnalysisData {
     suitable: boolean;
     honestFeedback: string;
     improvements: string[];
+    typosAndGrammar?: Array<{
+      error: string;
+      fix: string;
+    }>;
     atsKeywords: string[];
   };
   updatedResume?: string;
@@ -121,7 +125,12 @@ const Results = () => {
     if (analysis.resumeAnalysis) {
       allContent += `RESUME FEEDBACK\n${'='.repeat(50)}\n\n`;
       allContent += `Fit Assessment:\n${analysis.resumeAnalysis.honestFeedback}\n\n`;
-      allContent += `Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
+      
+      if (analysis.resumeAnalysis.typosAndGrammar && analysis.resumeAnalysis.typosAndGrammar.length > 0) {
+        allContent += `Typos and Grammar Corrections:\n${analysis.resumeAnalysis.typosAndGrammar.map(correction => `• Error: ${correction.error}\n  Fix: ${correction.fix}`).join('\n')}\n\n`;
+      }
+      
+      allContent += `Other Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
       allContent += `ATS Keywords to Include:\n${analysis.resumeAnalysis.atsKeywords.join(', ')}\n\n`;
     }
     
@@ -210,12 +219,21 @@ Salary Range: ${analysis.jobAnalysis.salaryRange || 'Not specified'}`;
   const copyResumeFeedback = () => {
     if (!analysis?.resumeAnalysis) return;
     
-    const content = `Resume Feedback:
+    let content = `Resume Feedback:
 
 Fit Assessment:
 ${analysis.resumeAnalysis.honestFeedback}
 
-Recommended Improvements:
+`;
+
+    if (analysis.resumeAnalysis.typosAndGrammar && analysis.resumeAnalysis.typosAndGrammar.length > 0) {
+      content += `Typos and Grammar Corrections:
+${analysis.resumeAnalysis.typosAndGrammar.map(correction => `• Error: ${correction.error}\n  Fix: ${correction.fix}`).join('\n')}
+
+`;
+    }
+
+    content += `Other Recommended Improvements:
 ${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}
 
 ATS Keywords to Include:
@@ -334,7 +352,12 @@ Additional Interview Questions & Answers:
     if (analysis.resumeAnalysis) {
       allContent += `RESUME FEEDBACK\n${'='.repeat(50)}\n\n`;
       allContent += `Fit Assessment:\n${analysis.resumeAnalysis.honestFeedback}\n\n`;
-      allContent += `Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
+      
+      if (analysis.resumeAnalysis.typosAndGrammar && analysis.resumeAnalysis.typosAndGrammar.length > 0) {
+        allContent += `Typos and Grammar Corrections:\n${analysis.resumeAnalysis.typosAndGrammar.map(correction => `• Error: ${correction.error}\n  Fix: ${correction.fix}`).join('\n')}\n\n`;
+      }
+      
+      allContent += `Other Recommended Improvements:\n${analysis.resumeAnalysis.improvements.map(improvement => `• ${improvement}`).join('\n')}\n\n`;
       allContent += `ATS Keywords to Include:\n${analysis.resumeAnalysis.atsKeywords.join(', ')}\n\n`;
     }
     
@@ -519,9 +542,31 @@ Additional Interview Questions & Answers:
                     </div>
                     {analysis.resumeAnalysis && (
                       <>
+                        {analysis.resumeAnalysis.typosAndGrammar && analysis.resumeAnalysis.typosAndGrammar.length > 0 && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Typos and Grammar Corrections</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-3">
+                                {analysis.resumeAnalysis.typosAndGrammar.map((correction, index) => (
+                                  <li key={index} className="border-l-4 border-red-200 pl-4">
+                                    <div className="text-gray-600 text-sm mb-1">
+                                      <span className="font-medium text-red-600">Error:</span> {correction.error}
+                                    </div>
+                                    <div className="text-gray-600 text-sm">
+                                      <span className="font-medium text-green-600">Fix:</span> {correction.fix}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+
                         <Card>
                           <CardHeader>
-                            <CardTitle>Recommended Improvements</CardTitle>
+                            <CardTitle>Other Recommended Improvements</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ul className="list-disc list-inside space-y-2">

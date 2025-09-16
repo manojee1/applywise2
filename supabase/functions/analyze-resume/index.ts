@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -13,23 +12,24 @@ function buildSystemPrompt(showCoverLetters: boolean, showInterviewPrep: boolean
   let analysisSteps = `Your analysis should follow this structure:
 1. Analyze the job description and list out the key requirements for the role, where it is based or if its remote, and what the salary range is if there is one
 2. Analyze the resume, Analyze the resume for general format, tone, spelling mistakes, repetitive terms, use of action verbs, and quantification of results.  Also tell me honestly if my background is suitable for the role and why or why not.  Be brutally honest.
-3. Tell me if there are any changes you would make to my resume to improve my chances. Include any keywords that ATS software in way that flows with the resume
-4. Do not fabricate any work experience, be factual. But you are welcome to ask questions along the way
-5. Based on the suggestions, provide an updated resume version with improvements`;
+3. Identify any typos, spelling mistakes, or grammar errors in the resume. For each error, provide the exact original text and the corrected version.
+4. Tell me if there are any other changes you would make to my resume to improve my chances. Include any keywords that ATS software in way that flows with the resume
+5. Do not fabricate any work experience, be factual. But you are welcome to ask questions along the way
+6. Based on the suggestions, provide an updated resume version with improvements`;
 
   if (showCoverLetters) {
     analysisSteps += `
-6. Prepare a short succinct cover letter for the role
-7. Prepare a LinkedIn email that can be sent to contacts`;
+7. Prepare a short succinct cover letter for the role
+8. Prepare a LinkedIn email that can be sent to contacts`;
   }
 
   if (showInterviewPrep) {
     analysisSteps += `
-${showCoverLetters ? '8' : '6'}. Prepare interview questions and responses. One question should be "Tell me about yourself." Another should be "What are you looking for in your next role." Prepare 8 additional questions. For senior roles, answer in a more strategic fashion.`;
+${showCoverLetters ? '9' : '7'}. Prepare interview questions and responses. One question should be "Tell me about yourself." Another should be "What are you looking for in your next role." Prepare 8 additional questions. For senior roles, answer in a more strategic fashion.`;
   }
 
   analysisSteps += `
-${showCoverLetters || showInterviewPrep ? (showCoverLetters && showInterviewPrep ? '9' : '7') : '6'}. Do not use em-dashes in any of your responses.`;
+${showCoverLetters || showInterviewPrep ? (showCoverLetters && showInterviewPrep ? '10' : '8') : '7'}. Do not use em-dashes in any of your responses.`;
 
   let jsonStructure = `{
   "jobAnalysis": {
@@ -42,6 +42,12 @@ ${showCoverLetters || showInterviewPrep ? (showCoverLetters && showInterviewPrep
     "suitable": boolean,
     "honestFeedback": "",
     "improvements": [],
+    "typosAndGrammar": [
+      {
+        "error": "original text with error",
+        "fix": "corrected text"
+      }
+    ],
     "atsKeywords": []
   },
   "updatedResume": ""`;
