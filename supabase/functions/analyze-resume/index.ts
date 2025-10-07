@@ -107,11 +107,12 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
+        response_format: { type: "json_object" },
         messages: [
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified.`
+            content: `Job Description:\n${jobDescription}\n\nResume:\n${resumeText}\n\nPlease provide a comprehensive analysis following the structure specified. Return ONLY valid JSON, no markdown formatting.`
           }
         ],
         temperature: 0.7,
@@ -129,12 +130,37 @@ serve(async (req) => {
 
     console.log('Analysis completed successfully');
 
-    // Try to parse as JSON, fallback to plain text if parsing fails
+    // Try to parse as JSON with better extraction
     let analysis;
     try {
+      // Try direct parse first
       analysis = JSON.parse(analysisContent);
     } catch {
-      analysis = { rawAnalysis: analysisContent };
+      // Try to extract JSON from markdown code blocks
+      const jsonMatch = analysisContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+      if (jsonMatch) {
+        try {
+          analysis = JSON.parse(jsonMatch[1]);
+        } catch {
+          console.error('Failed to parse extracted JSON');
+          analysis = { rawAnalysis: analysisContent };
+        }
+      } else {
+        // Try to find JSON object in the response
+        const jsonStart = analysisContent.indexOf('{');
+        const jsonEnd = analysisContent.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          try {
+            analysis = JSON.parse(analysisContent.substring(jsonStart, jsonEnd + 1));
+          } catch {
+            console.error('Failed to parse JSON from content');
+            analysis = { rawAnalysis: analysisContent };
+          }
+        } else {
+          console.error('No JSON found in response');
+          analysis = { rawAnalysis: analysisContent };
+        }
+      }
     }
 
     return new Response(JSON.stringify({ analysis }), {
