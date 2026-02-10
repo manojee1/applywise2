@@ -215,14 +215,14 @@ const Index = () => {
                   <Label htmlFor="pdf-upload" className="text-sm text-gray-600">
                     Upload a PDF resume for AI-powered text extraction:
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center min-h-[56px] border border-gray-300 rounded-md px-3">
                     <Input
                       id="pdf-upload"
                       type="file"
                       accept=".pdf"
                       onChange={handlePdfUpload}
                       disabled={isExtractingPdf}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300 focus:border-blue-500 focus:ring-blue-500 my-auto"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
                     />
                   </div>
                   {isExtractingPdf && (
