@@ -18,6 +18,7 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtractingPdf, setIsExtractingPdf] = useState(false);
   const [pdfFileName, setPdfFileName] = useState("");
+  const [showManualPaste, setShowManualPaste] = useState(false);
   const [showCoverLetters, setShowCoverLetters] = useState(false);
   const [showInterviewPrep, setShowInterviewPrep] = useState(false);
   const navigate = useNavigate();
@@ -98,6 +99,7 @@ const Index = () => {
       if (data.error) throw new Error(data.error);
 
       setResumeText(data.text);
+      setShowManualPaste(true);
       toast({
         title: "PDF text extracted!",
         description: "Review and edit the extracted text below before analyzing.",
@@ -213,14 +215,14 @@ const Index = () => {
                   <Label htmlFor="pdf-upload" className="text-sm text-gray-600">
                     Upload a PDF resume for AI-powered text extraction:
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-h-[40px]">
                     <Input
                       id="pdf-upload"
                       type="file"
                       accept=".pdf"
                       onChange={handlePdfUpload}
                       disabled={isExtractingPdf}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300 focus:border-blue-500 focus:ring-blue-500 self-center"
                     />
                   </div>
                   {isExtractingPdf && (
@@ -246,25 +248,35 @@ const Index = () => {
                   )}
                 </div>
 
-                {/* Divider */}
-                <div className="flex items-center gap-3 py-1">
-                  <div className="flex-1 border-t border-gray-200"></div>
-                  <span className="text-sm text-gray-400">or paste text directly</span>
-                  <div className="flex-1 border-t border-gray-200"></div>
-                </div>
-
-                {/* Text input - also serves as editable preview after PDF extraction */}
-                <Textarea
-                  ref={resumeTextRef}
-                  id="resume-text"
-                  placeholder="Paste your resume text here or upload a PDF above..."
-                  value={resumeText}
-                  onChange={e => setResumeText(e.target.value)}
-                  onBlur={validateResumeText}
-                  className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
-                {resumeText && (
-                  <p className="text-xs text-gray-400">{countWords(resumeText)} / 1000 words</p>
+                {/* Paste manually link or textarea */}
+                {!showManualPaste && !resumeText ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowManualPaste(true)}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                  >
+                    Or paste resume text manually
+                  </button>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 py-1">
+                      <div className="flex-1 border-t border-gray-200"></div>
+                      <span className="text-sm text-gray-400">{pdfFileName ? 'extracted text (editable)' : 'paste text directly'}</span>
+                      <div className="flex-1 border-t border-gray-200"></div>
+                    </div>
+                    <Textarea
+                      ref={resumeTextRef}
+                      id="resume-text"
+                      placeholder="Paste your resume text here..."
+                      value={resumeText}
+                      onChange={e => setResumeText(e.target.value)}
+                      onBlur={validateResumeText}
+                      className="min-h-[200px] resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    {resumeText && (
+                      <p className="text-xs text-gray-400">{countWords(resumeText)} / 1000 words</p>
+                    )}
+                  </>
                 )}
               </div>
 
