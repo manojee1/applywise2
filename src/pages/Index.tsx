@@ -101,7 +101,7 @@ const Index = () => {
       if (data.error) throw new Error(data.error);
 
       setResumeText(data.text);
-      setShowManualPaste(true);
+      setShowManualPaste(false);
       const validation = validateExtraction(data.text);
       console.log("[ExtractionValidator]", validation);
       if (validation.warnings.length > 0) {
