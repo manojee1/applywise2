@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Loader2, Upload, FileText, X } from "lucide-react";
+import ExtractionChecklist from "@/components/ExtractionChecklist";
+import { validateExtraction, type ExtractionValidation } from "@/utils/extractionValidator";
 
 const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
@@ -21,6 +23,7 @@ const Index = () => {
   const [showManualPaste, setShowManualPaste] = useState(false);
   const [showCoverLetters, setShowCoverLetters] = useState(false);
   const [showInterviewPrep, setShowInterviewPrep] = useState(false);
+  const [extractionValidation, setExtractionValidation] = useState<ExtractionValidation | null>(null);
   const navigate = useNavigate();
   const jobDescriptionRef = useRef<HTMLTextAreaElement>(null);
   const resumeTextRef = useRef<HTMLTextAreaElement>(null);
@@ -100,6 +103,7 @@ const Index = () => {
 
       setResumeText(data.text);
       setShowManualPaste(true);
+      setExtractionValidation(validateExtraction(data.text));
       toast({
         title: "PDF text extracted!",
         description: "Review and edit the extracted text below before analyzing.",
@@ -120,6 +124,7 @@ const Index = () => {
   const handleClearPdf = () => {
     setPdfFileName("");
     setResumeText("");
+    setExtractionValidation(null);
     const fileInput = document.getElementById("pdf-upload") as HTMLInputElement;
     if (fileInput) fileInput.value = "";
   };
@@ -247,6 +252,10 @@ const Index = () => {
                     </div>
                   )}
                 </div>
+
+                {extractionValidation && pdfFileName && (
+                  <ExtractionChecklist validation={extractionValidation} />
+                )}
 
                 {/* Paste manually link or textarea */}
                 {!showManualPaste && !resumeText ? (
